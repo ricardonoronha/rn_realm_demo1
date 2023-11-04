@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "demo_realm_bare",
+    "slug": "demo_realm_bare",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
