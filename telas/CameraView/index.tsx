@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import * as Permissions from "expo-permissions"
 import * as ExpoFs from "expo-file-system";
 import { useIsFocused } from '@react-navigation/native';
+import uuid from "react-native-uuid";
+import { getRealm } from '../../databases/realm';
 
 
 export default function CameraView() {
@@ -15,7 +17,7 @@ export default function CameraView() {
     console.log("diretorio dirTrimap", dirTrimap);
 
 
-    isFocused = useIsFocused();
+    const isFocused = useIsFocused();
 
     const [tipoCamera, setTipoCamera] = useState<CameraType>(CameraType.back);
     const [temPermissao, setTemPermissao] = useState<boolean | null>(null);
@@ -23,7 +25,6 @@ export default function CameraView() {
     const [permissaoPasta, setPermissaoPasta] = useState<ExpoFs.FileSystemRequestDirectoryPermissionsResult | null>(null);
     const [foto, setFoto] = useState<CameraCapturedPicture | null>(null)
     const cameraRef = useRef<Camera>(null);
-    const [fotoCorrente, setFotoCorrente] = useState(1);
     const [arquivos, setArquivos] = useState<string[]>([]);
 
 
@@ -75,6 +76,15 @@ export default function CameraView() {
         })();
     }, [temPermissaoPasta])
 
+    useEffect(() => {
+
+        (async () => {
+            const realm = await getRealm();
+            console.log(realm.objects("Foto").toJSON());
+        })();
+
+    }, [isFocused])
+
     if (temPermissao === null) {
         return <View style={estilos.container}>
             <Text>Permissão não definida</Text>
@@ -110,15 +120,73 @@ export default function CameraView() {
 
     }
 
+    async function base64Foto() {
+
+        const realm = await getRealm();
+        try {
+
+            const fotoDb = realm
+                .objects("Foto")
+                .filtered(`_id = 'fa4f511c-3e68-41c1-9eda-1fae34c2862d'`)
+                .toJSON()[0];
+
+            console.log("fotoDb ==> ", fotoDb);
+
+            const base64Img = await ExpoFs.readAsStringAsync(fotoDb.uri as string, { encoding: ExpoFs.EncodingType.Base64 });
+
+            // console.log("base64Img ==> ", `data:image/jpeg;base64,${base64Img}`);
+
+            const kb = Math.ceil(((base64Img.length * 6) / 8) / 1000); // 426 kb
+            console.log(`size file in base64 ==> ${kb}kb`);
+        }
+        catch (error) {
+            console.log(error);
+        }
+        finally {
+            realm.close();
+        }
+
+    }
+
     async function salvarFoto() {
         if (foto) {
+
+            const novoFotoId = uuid.v4();
+
             const fotoUriStr = foto?.uri.toString()
             console.log("fotoUriStr", fotoUriStr);
             const extensaoImg = fotoUriStr?.split(".").pop();
             console.log("extensão foto", extensaoImg);
 
-            await ExpoFs.copyAsync({ from: foto.uri, to: `${dirTrimap}/${fotoCorrente.toString().padStart(4, '0')}.${extensaoImg}` });
-            setFotoCorrente(fotoCorrente + 1)
+            const uriNovoArquivo = `${dirTrimap}/${novoFotoId}.${extensaoImg}`;
+
+            await ExpoFs.copyAsync({ from: foto.uri, to: uriNovoArquivo });
+
+            const realm = await getRealm();
+
+            try {
+                realm.write(() => {
+                    realm.create("Foto", {
+                        _id: uuid.v4(),
+                        task_id: "pendente",
+                        extensao: extensaoImg,
+                        uri: uriNovoArquivo,
+                    });
+                })
+
+
+            }
+            catch (error) {
+                console.log("Erro ao salvar foto", error);
+            }
+            finally {
+                realm.close();
+            }
+
+
+
+
+
             await listarFotos();
 
 
@@ -156,6 +224,9 @@ export default function CameraView() {
             </TouchableOpacity>
             <TouchableOpacity onPress={listarFotos} style={estilos.voltar}>
                 <Text style={{ color: "white", padding: 10, textAlign: "center", fontSize: 19 }}>Listar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={base64Foto} style={estilos.voltar}>
+                <Text style={{ color: "white", padding: 10, textAlign: "center", fontSize: 19 }}>base64</Text>
             </TouchableOpacity>
         </View>
     }

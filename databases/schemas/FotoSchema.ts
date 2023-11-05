@@ -5,9 +5,9 @@ export const FotoSchema: ObjectSchema = {
     properties: {
         _id: "string",
         task_id: "string",
-        nomeArquivo: "string",
         uri: "string",
-        base64: "string"
+        extensao: "string", 
+        dataUpload: "date?"
     }, 
     primaryKey: "_id"
 }

@@ -4,7 +4,8 @@ import { FotoSchema } from "./schemas/FotoSchema";
 
 export const getRealm = async () => await Realm.open({
     path: "demo-realm",
-    schema: [TodoSchema, FotoSchema]
+    schema: [TodoSchema, FotoSchema],
+    schemaVersion: 5
 });
 
 
