@@ -6,6 +6,7 @@ import uuid from 'react-native-uuid';
 import { NavigationContainer, useIsFocused } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import CameraView from './telas/CameraView';
 
 const Stack = createNativeStackNavigator();
 
@@ -52,6 +53,9 @@ function HomeScreen({ navigation }) {
       </View>
       <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "red", flex: 1, alignItems: "center" }} onPress={() => removerTodo(item)} >
         <Text style={{ lineHeight: 20, textAlign: "center", marginTop: 10 }}>Remover</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "lightblue", flex: 1, alignItems: "center", marginLeft: 10 }} onPress={() => navigation.navigate("Foto")} >
+        <Text style={{ lineHeight: 20, textAlign: "center", marginTop: 10 }}>Foto</Text>
       </TouchableOpacity>
     </View>
   }
@@ -145,6 +149,7 @@ export default function App() {
         <Stack.Navigator>
           <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Página Inicial', headerShown: false }} />
           <Stack.Screen name="AddTarefa" component={AddTarefa} options={{ title: 'Adicionar tarefa' }} />
+          <Stack.Screen name="Foto" component={CameraView} options={{ title: 'Foto' }} />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="auto" backgroundColor='darkgray' />
