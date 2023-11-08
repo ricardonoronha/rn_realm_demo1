@@ -9,8 +9,11 @@ import uuid from "react-native-uuid";
 import { getRealm } from '../../databases/realm';
 
 
-export default function CameraView() {
+export default function CameraView({ navigation, route }) {
 
+    const { task } = route.params;
+    console.log("task foto", task);
+    console.log("route params", route.params);
 
     const dirTrimap = ExpoFs.documentDirectory + "trimap_imagens/";
 
@@ -27,6 +30,7 @@ export default function CameraView() {
     const cameraRef = useRef<Camera>(null);
     const [arquivos, setArquivos] = useState<string[]>([]);
 
+    
 
 
     useEffect(() => {
@@ -83,8 +87,8 @@ export default function CameraView() {
             console.log(realm.objects("Foto").toJSON());
         })();
 
-    }, [isFocused])
-
+    }, [isFocused]);
+ 
     if (temPermissao === null) {
         return <View style={estilos.container}>
             <Text>Permissão não definida</Text>
@@ -167,8 +171,8 @@ export default function CameraView() {
             try {
                 realm.write(() => {
                     realm.create("Foto", {
-                        _id: uuid.v4(),
-                        task_id: "pendente",
+                        _id: novoFotoId,
+                        task_id: task._id,
                         extensao: extensaoImg,
                         uri: uriNovoArquivo,
                     });

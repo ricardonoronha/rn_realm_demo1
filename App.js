@@ -7,6 +7,30 @@ import { NavigationContainer, useIsFocused } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CameraView from './telas/CameraView';
+import { AWS } from "aws-sdk"
+import FotoView from './telas/FotoView';
+
+// AWS.config.update({
+//   accessKeyId: "",
+//   secretAccessKey: "",
+//   region: "sa-east-1"
+// });
+
+// const awsS3 = AWS.S3();
+
+
+// const uploadFileToS3 = (bucketName, fileName, filePath) => {
+
+//   const params = {
+//     Bucket: bucketName,
+//     Key: fileName,
+//     Body: filePath
+//   };
+
+//   return s3.upload(params).promise();
+// }
+
+
 
 const Stack = createNativeStackNavigator();
 
@@ -22,7 +46,7 @@ function HomeScreen({ navigation }) {
   }, [isFocused]);
 
   async function removerTodo(todo) {
-    
+
     const realm = await getRealm();
 
     try {
@@ -43,9 +67,22 @@ function HomeScreen({ navigation }) {
 
   }
 
+  async function enviarS3(item) {
+
+    navigation.navigate("FotoView", { item });
+
+    console.log(item);
+
+    const realm = await getRealm();
+    console.log("item", item);
+    const fotos = realm.objects("Foto").toJSON();
+    console.log("foto", fotos)
+
+  }
+
 
   function RenderCard({ item }) {
-    
+
     return <View style={styles.todoCard}>
       <View style={{ width: "100%", flex: 3 }}>
         <Text style={styles.tituloCard}>{item.titulo}</Text>
@@ -54,8 +91,11 @@ function HomeScreen({ navigation }) {
       <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "red", flex: 1, alignItems: "center" }} onPress={() => removerTodo(item)} >
         <Text style={{ lineHeight: 20, textAlign: "center", marginTop: 10 }}>Remover</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "lightblue", flex: 1, alignItems: "center", marginLeft: 10 }} onPress={() => navigation.navigate("Foto")} >
+      <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "lightblue", flex: 1, alignItems: "center", marginLeft: 10 }} onPress={() => navigation.navigate("Foto", { task: item })} >
         <Text style={{ lineHeight: 20, textAlign: "center", marginTop: 10 }}>Foto</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "lightyellow", flex: 1, alignItems: "center", marginLeft: 10 }} onPress={() => enviarS3(item)} >
+        <Text style={{ lineHeight: 20, textAlign: "center", marginTop: 10 }}>S3</Text>
       </TouchableOpacity>
     </View>
   }
@@ -130,7 +170,7 @@ function AddTarefa({ navigation }) {
 
   return <SafeAreaView style={{ flex: 1, padding: 10, alignItems: "center", justifyContent: "center" }}>
     <View style={styles.containerInputs}>
-      
+
       <TextInput placeholder="Título" style={styles.titutoTxt} value={titulo} onChangeText={setTitulo} />
       <TextInput placeholder="Descricao" style={styles.titutoTxt} value={descricao} onChangeText={setDescricao} />
     </View>
@@ -150,6 +190,7 @@ export default function App() {
           <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Página Inicial', headerShown: false }} />
           <Stack.Screen name="AddTarefa" component={AddTarefa} options={{ title: 'Adicionar tarefa' }} />
           <Stack.Screen name="Foto" component={CameraView} options={{ title: 'Foto' }} />
+          <Stack.Screen name="FotoView" component={FotoView} options={{ title: 'FotoView' }} />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="auto" backgroundColor='darkgray' />
