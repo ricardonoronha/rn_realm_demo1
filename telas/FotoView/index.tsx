@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Image, StatusBar, Alert } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Image, StatusBar, Alert, Button, FlatList } from 'react-native';
 import { Camera, CameraType, CameraCapturedPicture } from "expo-camera"
 import * as MediaLibrary from "expo-media-library"
 import { useEffect, useRef, useState } from 'react';
@@ -7,62 +7,82 @@ import * as ExpoFs from "expo-file-system";
 import { useIsFocused } from '@react-navigation/native';
 import uuid from "react-native-uuid";
 import { getRealm } from '../../databases/realm';
+import AWS from "aws-sdk";
+import { decode } from "base64-arraybuffer";
 
+
+
+AWS.config.update({
+    accessKeyId: "",
+    secretAccessKey: "",
+    region: "sa-east-1"
+});
+
+const awsS3 = new AWS.S3();
+
+
+const uploadFileToS3 = (bucketName, fileName, filePath) => {
+
+    const params = {
+        Bucket: bucketName,
+        Key: fileName,
+        Body: filePath
+    };
+
+    return awsS3.upload(params).promise();
+}
 
 export default function FotoView({ navigation, route }) {
 
     console.log("route params", route.params);
 
+    const task = route.params.item;
+
+    console.log("task", task);
+
+    const [foto, setFoto] = useState([]);
+    const [carregando, setCarregando] = useState("Carregando...");
     const [temPermissao, setTemPermissao] = useState<boolean | null>(null);
     const [temPermissaoPasta, setTemPermissaoPasta] = useState<boolean | null>(null);
     const dirTrimap = ExpoFs.documentDirectory + "trimap_imagens/";
+    const isFocused = useIsFocused();
 
     useEffect(() => {
-        (async () => {
-            const { status } = await Camera.requestCameraPermissionsAsync();
-            console.log("status", status);
-            setTemPermissao(status === "granted");
-        })();
 
         (async () => {
 
-            const infoDirTrimap = await ExpoFs.getInfoAsync(dirTrimap);
+            const realm = await getRealm();
+            const listaFotos = realm.objects("Foto").filtered(`task_id = '${task._id}'`).toJSON();
+            const listaFotosFinal = [];
 
-            if (!infoDirTrimap.exists) {
+            for (let i = 0; i < listaFotos.length; i++) {
+
+                const fotoDb = listaFotos[i];
+
+                console.log("fotoDb", fotoDb);
+
                 try {
-                    await ExpoFs.makeDirectoryAsync(dirTrimap, { intermediates: true });
+                    const fileInfo = await ExpoFs.getInfoAsync(fotoDb.uri);
+                    console.log("fileInfo", fileInfo);
+
+                    const file = await ExpoFs.readAsStringAsync(fileInfo.uri, { encoding: ExpoFs.EncodingType.Base64 });
+
+                    listaFotosFinal.push({
+                        ...fotoDb,
+                        base64: file
+                    });
                 }
                 catch (error) {
-                    console.log("error ao criar diretório", error);
+                    console.log("error abrir arquivo", error);
                 }
             }
-            else {
-                // const arquivosSearch = await ExpoFs.readDirectoryAsync(dirTrimap);
-
-                // const maiorId: Number = arquivosSearch
-                //     .map(arq => {
-                //         const fileName = arq.split("/").pop();
-                //         console.log(fileName);
-                //         return fileName;
-                //     })
-                //     .map(fileName => {
-                //         console.log(fileName);
-                //         return 0;
-                //         // return new Number(fileName?.substring(0, 4));
-                //     })
-                //     .reduce(function (a, b) {
-                //         return Math.max(a, b);
-                //     }, 1);
-
-                // setFotoCorrente(maiorId);
-            }
 
 
+            setFoto(listaFotosFinal)
 
-
-
+            setCarregando("");
         })();
-    }, [temPermissaoPasta])
+    }, [isFocused, task._id])
 
     async function listarArquivos() {
         const permissao = await ExpoFs.StorageAccessFramework.requestDirectoryPermissionsAsync();
@@ -72,10 +92,59 @@ export default function FotoView({ navigation, route }) {
         }
     }
 
-    return (<View style={{ flex: 1, justifyContent: "center", alignContent: "center" }}>
-        <Text style={estilos.tituloFoto}>Foto</Text>
-        
-    </View>
+    async function enviarS3() {
+        setCarregando("Enviando para S3...");
+
+        for (let i = 0; i < foto.length; i++) {
+            const fotoEnviar = foto[i];
+            const arrayBuffer = decode(fotoEnviar.base64);
+            if (foto) {
+                await uploadFileToS3("app-tablet-trimap", `${fotoEnviar._id}.${fotoEnviar.extensao}`, arrayBuffer);
+            }
+        }
+        setCarregando("");
+    }
+
+    if (carregando !== "") {
+        return <View style={{ justifyContent: "space-around", alignItems: "center", height: "100%" }}>
+            <Text>{carregando}</Text>
+        </View>
+    }
+
+
+    if (!foto) {
+        return <View style={{ justifyContent: "space-around", alignItems: "center", height: "100%" }}>
+            <Text>Sem foto</Text>
+        </View>
+    }
+
+    function RenderItem({ item }) {
+        console.log("keys=====", Object.keys(item));
+        console.log("======item", item._id)
+        return (<View style={{ flex: 1, justifyContent: "center", alignContent: "center", marginLeft: 10, display: 'flex', flexDirection: "row", margin: 10, backgroundColor: "lightgray", padding: 10, }}>
+            {item && <Image source={{ uri: `data:image/${item.extensao};base64,${item.base64}` }} width={100} height={100} style={{ borderRadius: 10 }} />}
+            <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text>{item._id}.{item.extensao}</Text>
+
+            </View>
+        </View>
+        );
+    }
+
+    function RenderFooter() {
+        return <View style={{ alignContent: "center", justifyContent: "center", alignItems: "center" }}>
+            <Button title="   Enviar S3   " onPress={enviarS3} />
+        </View>
+
+    }
+
+    console.log("itens foto", foto.map(x => x._id));
+
+    return (
+        <View>
+            <FlatList data={foto} renderItem={item => RenderItem(item)} keyExtractor={item => item._id} ListFooterComponent={RenderFooter} />
+        </View>
+
     );
 }
 

@@ -30,10 +30,13 @@ export default function CameraView({ navigation, route }) {
     const cameraRef = useRef<Camera>(null);
     const [arquivos, setArquivos] = useState<string[]>([]);
 
-    
+
 
 
     useEffect(() => {
+
+
+
         (async () => {
             const { status } = await Camera.requestCameraPermissionsAsync();
             console.log("status", status);
@@ -88,7 +91,7 @@ export default function CameraView({ navigation, route }) {
         })();
 
     }, [isFocused]);
- 
+
     if (temPermissao === null) {
         return <View style={estilos.container}>
             <Text>Permissão não definida</Text>
