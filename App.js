@@ -10,25 +10,6 @@ import CameraView from './telas/CameraView';
 import { AWS } from "aws-sdk"
 import FotoView from './telas/FotoView';
 
-// AWS.config.update({
-//   accessKeyId: "",
-//   secretAccessKey: "",
-//   region: "sa-east-1"
-// });
-
-// const awsS3 = AWS.S3();
-
-
-// const uploadFileToS3 = (bucketName, fileName, filePath) => {
-
-//   const params = {
-//     Bucket: bucketName,
-//     Key: fileName,
-//     Body: filePath
-//   };
-
-//   return s3.upload(params).promise();
-// }
 
 
 
