@@ -7,7 +7,8 @@ export const FotoSchema: ObjectSchema = {
         task_id: "string",
         uri: "string",
         extensao: "string", 
-        dataUpload: "date?"
+        dataUpload: "date?",
+        deviceId: "string"
     }, 
     primaryKey: "_id"
 }

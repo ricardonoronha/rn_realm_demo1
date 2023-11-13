@@ -9,6 +9,8 @@ import uuid from "react-native-uuid";
 import { getRealm } from '../../databases/realm';
 import AWS from "aws-sdk";
 import { decode } from "base64-arraybuffer";
+import { getUniqueId } from 'react-native-device-info';
+
 
 
 
@@ -33,6 +35,9 @@ const uploadFileToS3 = (bucketName, fileName, filePath) => {
 }
 
 export default function FotoView({ navigation, route }) {
+
+
+
 
     console.log("route params", route.params);
 
@@ -119,12 +124,18 @@ export default function FotoView({ navigation, route }) {
     }
 
     function RenderItem({ item }) {
+        let uploadEm;
+
+        if (item.dataUpload) {
+            uploadEm = item.dataUpload.toLocaleString().substring(0, 16);
+        }
         console.log("keys=====", Object.keys(item));
         console.log("======item", item._id)
         return (<View style={{ flex: 1, justifyContent: "center", alignContent: "center", marginLeft: 10, display: 'flex', flexDirection: "row", margin: 10, backgroundColor: "lightgray", padding: 10, }}>
             {item && <Image source={{ uri: `data:image/${item.extensao};base64,${item.base64}` }} width={100} height={100} style={{ borderRadius: 10 }} />}
             <View style={{ flex: 1, marginLeft: 10 }}>
                 <Text>{item._id}.{item.extensao}</Text>
+                {uploadEm ? <Text>Upload em: {uploadEm}</Text> : <Text>Upload PENDENTE</Text>}
 
             </View>
         </View>

@@ -9,6 +9,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CameraView from './telas/CameraView';
 import { AWS } from "aws-sdk"
 import FotoView from './telas/FotoView';
+import ConfigView from './telas/ConfigView';
+import SyncView from './telas/SyncView';
+
+
 
 
 
@@ -64,10 +68,10 @@ function HomeScreen({ navigation }) {
 
   function RenderCard({ item }) {
 
-    return <View style={styles.todoCard}>
+    return <View style={{ display: "flex", flexDirection: "row", alignItems: "center", flex: 1, direction: "row", padding: 10, width: '100%', backgroundColor: "lightgrey" }}>
       <View style={{ width: "100%", flex: 3 }}>
-        <Text style={styles.tituloCard}>{item.titulo}</Text>
-        <Text style={styles.descricaoCard}>{item.descricao}</Text>
+        <Text style={{ flex: 1, lineHeight: 25, color: "black" }}>{item.titulo}</Text>
+        <Text style={{ flex: 1, lineHeight: 25, color: "black", }}>{item.descricao}</Text>
       </View>
       <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "red", flex: 1, alignItems: "center" }} onPress={() => removerTodo(item)} >
         <Text style={{ lineHeight: 20, textAlign: "center", marginTop: 10 }}>Remover</Text>
@@ -106,6 +110,9 @@ function HomeScreen({ navigation }) {
       <Text style={styles.headerListaText}>Lista de tarefas</Text>
       <TouchableOpacity style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: "green" }} onPress={() => navigation.navigate("AddTarefa")} >
         <Text style={{ lineHeight: 40, width: 60, textAlign: "center", marginTop: 10, color: "white" }}>+</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: "black" }} onPress={() => navigation.navigate("ConfigView")} >
+        <Text style={{ lineHeight: 40, width: 60, textAlign: "center", marginTop: 10, color: "white" }}>Cfg</Text>
       </TouchableOpacity>
     </View>
   }
@@ -172,6 +179,8 @@ export default function App() {
           <Stack.Screen name="AddTarefa" component={AddTarefa} options={{ title: 'Adicionar tarefa' }} />
           <Stack.Screen name="Foto" component={CameraView} options={{ title: 'Foto' }} />
           <Stack.Screen name="FotoView" component={FotoView} options={{ title: 'FotoView' }} />
+          <Stack.Screen name="ConfigView" component={ConfigView} options={{ title: 'Configurações' }} />
+          <Stack.Screen name="SyncView" component={SyncView} options={{ title: 'Sincronizar' }} />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="auto" backgroundColor='darkgray' />

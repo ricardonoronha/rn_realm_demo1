@@ -7,6 +7,7 @@ import * as ExpoFs from "expo-file-system";
 import { useIsFocused } from '@react-navigation/native';
 import uuid from "react-native-uuid";
 import { getRealm } from '../../databases/realm';
+import { getUniqueId } from 'react-native-device-info';
 
 
 export default function CameraView({ navigation, route }) {
@@ -169,6 +170,8 @@ export default function CameraView({ navigation, route }) {
 
             await ExpoFs.copyAsync({ from: foto.uri, to: uriNovoArquivo });
 
+            const deviceId = await getUniqueId();
+
             const realm = await getRealm();
 
             try {
@@ -178,6 +181,7 @@ export default function CameraView({ navigation, route }) {
                         task_id: task._id,
                         extensao: extensaoImg,
                         uri: uriNovoArquivo,
+                        deviceId: deviceId
                     });
                 })
 
