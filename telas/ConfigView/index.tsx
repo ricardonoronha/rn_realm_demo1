@@ -3,16 +3,30 @@ import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Image, StatusBa
 import { useIsFocused } from '@react-navigation/native';
 import uuid from "react-native-uuid";
 import { getRealm } from '../../databases/realm';
+import { useAuth } from "@realm/react"
 
 
 export default function ConfigView({ navigation }) {
 
+
+    const { logOut } = useAuth();
+
+    function sair() {
+        logOut();
+    }
+
     const configs = [
         { titulo: "Sync", descricao: "Sincronize o dados do aplicativo com a nuvem", rota: "SyncView" },
-        { titulo: "Configurações Gerais (Pendente)", descricao: "Configurações globais do aplicativo"},
+        { titulo: "Configurações Gerais (Pendente)", descricao: "Configurações globais do aplicativo" },
+        { titulo: "Sair", descricao: "Deslogar usuário", onPress: sair},
     ]
 
     function navegar(item) {
+        if (item.onPress){
+            item.onPress();
+            return;
+        }
+        
         if (item.rota) {
             navigation.navigate(item.rota)
         }

@@ -1,7 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, Text, TextInput, View, Button, FlatList, TouchableOpacity } from 'react-native';
-import { getRealm } from './databases/realm';
 import uuid from 'react-native-uuid';
 import { NavigationContainer, useIsFocused } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -11,6 +10,17 @@ import { AWS } from "aws-sdk"
 import FotoView from './telas/FotoView';
 import ConfigView from './telas/ConfigView';
 import SyncView from './telas/SyncView';
+import {
+  AppProvider,
+  UserProvider,
+  RealmProvider,
+  useAuth,
+  useRealm
+} from "@realm/react";
+import { FotoSchema } from './databases/schemas/FotoSchema';
+import { ProjetoSchema } from './databases/schemas/ProjetoSchema';
+import { SubProjetoSchema } from './databases/schemas/SubProjetoSchema';
+import { TodoSchema } from './databases/schemas/TodoSchema';
 
 
 
@@ -24,47 +34,26 @@ function HomeScreen({ navigation }) {
   const [tarefas, setTarefas] = useState([]);
   const isFocused = useIsFocused();
 
+  const realm = useRealm();
+
+  const refreshData = useCallback(() => {
+    try {
+      const tarefasCorrente = realm
+        .objects("Todo")
+        .toJSON();
+
+      setTarefas(tarefasCorrente);
+    }
+    catch (error) {
+      console.log("Error Realm", error);
+    }
+  }, [realm]);
+
   useEffect(() => {
 
     refreshData()
 
   }, [isFocused]);
-
-  async function removerTodo(todo) {
-
-    const realm = await getRealm();
-
-    try {
-
-      const tarefaADeltar = realm.objects("Todo").filtered(`_id = '${todo._id}'`);
-      realm.write(() => {
-        realm.delete(tarefaADeltar);
-      });
-    }
-    catch (error) {
-      console.log("Error Realm", error);
-    }
-    finally {
-      realm.close();
-    }
-
-    refreshData();
-
-  }
-
-  async function enviarS3(item) {
-
-    navigation.navigate("FotoView", { item });
-
-    console.log(item);
-
-    const realm = await getRealm();
-    console.log("item", item);
-    const fotos = realm.objects("Foto").toJSON();
-    console.log("foto", fotos)
-
-  }
-
 
   function RenderCard({ item }) {
 
@@ -85,25 +74,7 @@ function HomeScreen({ navigation }) {
     </View>
   }
 
-  async function refreshData() {
 
-    const realm = await getRealm();
-
-    try {
-      const tarefasCorrente = realm
-        .objects("Todo")
-        .toJSON();
-
-      setTarefas(tarefasCorrente);
-    }
-    catch (error) {
-      console.log("Error Realm", error);
-    }
-    finally {
-
-      realm.close();
-    }
-  }
 
   function RenderListaHeader() {
     return <View style={styles.headerLista}>
@@ -136,23 +107,22 @@ function AddTarefa({ navigation }) {
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
 
+  const realm = useRealm();
+
+  const createTodo = useCallback(() => {
+    realm.write(() => {
+      realm.create("Todo", { _id: uuid.v4(), titulo, descricao, projeto: "novooriente.ce", "subprojeto_id": "quadra0", responsavel: "" });
+    });
+  }, [realm, titulo, descricao]);
+
   async function handleAddTodo() {
 
-    const realm = await getRealm();
-
     try {
-      realm.write(() => {
-        realm.create("Todo", { _id: uuid.v4(), titulo, descricao });
-      });
-
-      realm.close();
+      createTodo();
       navigation.navigate("Home")
     }
     catch (error) {
       console.log("Error Realm", error);
-    }
-    finally {
-      realm.close();
     }
   }
 
@@ -168,9 +138,34 @@ function AddTarefa({ navigation }) {
   </SafeAreaView>
 }
 
-export default function App() {
+const LoginComponent = () => {
+
+  const { logInWithAnonymous, result } = useAuth();
+
+  function logar() {
+    try {
+      logInWithAnonymous();
+    }
+    catch (error) {
+      console.log("Login Error", error);
+    }
+  }
+
+  return (
+    <View style={{ display: "flex", flex: 1 }}>
+      <View style={{ flex: 2, justifyContent: "flex-end", alignItems: "center" }}>
+        <Text style={{ fontSize: 20, fontSize: 48 }}>Login</Text>
+      </View>
+      <TouchableOpacity onPress={() => logar()} style={{ flex: 2, backgroundColor: "blue", margin: 10, justifyContent: "center", alignItems: "center" }}>
+        <Text style={{color: "white", fontSize: 28, fontWeight: "bold"}}>Entrar como anônimo</Text>
+      </TouchableOpacity>
+      <View style={{flex: 4}}>{result.error && <Text>{result.error.message}</Text>}</View>
+    </View>
+  );
+};
 
 
+const AppComponent = () => {
   return (
     <>
       <NavigationContainer>
@@ -183,8 +178,36 @@ export default function App() {
           <Stack.Screen name="SyncView" component={SyncView} options={{ title: 'Sincronizar' }} />
         </Stack.Navigator>
       </NavigationContainer>
-      <StatusBar style="auto" backgroundColor='darkgray' />
-    </>
+      <StatusBar style="auto" backgroundColor='darkgray' /></>
+  );
+};
+
+
+export default function App() {
+
+
+
+  return (
+    <AppProvider id="">
+      <UserProvider fallback={LoginComponent}>
+        <RealmProvider
+          schema={[FotoSchema, ProjetoSchema, SubProjetoSchema, TodoSchema]}
+          sync={{
+            flexible: true,
+            initialSubscriptions: {
+              update: (subs, realm) => {
+                subs.add(
+                  realm.objects("Todo").filtered("projeto = 'novooriente.ce'")
+                );
+              }
+            },
+          }}
+        >
+          <AppComponent />
+        </RealmProvider>
+      </UserProvider>
+    </AppProvider>
+
   );
 }
 
