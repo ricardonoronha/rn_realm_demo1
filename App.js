@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, Text, TextInput, View, Button, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, TextInput, View, Button, FlatList, TouchableOpacity, Switch } from 'react-native';
 import uuid from 'react-native-uuid';
 import { NavigationContainer, useIsFocused } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -140,11 +140,20 @@ function AddTarefa({ navigation }) {
 
 const LoginComponent = () => {
 
-  const { logInWithAnonymous, result } = useAuth();
+  const [usuario, setUsuario] = useState("");
+  const [senha, setSenha] = useState("");
+  const [ocultarSenha, setOcultarSenha] = useState(true);
+
+  function alternarExibirSenha() {
+    console.log("alterado");
+    setOcultarSenha(estadoAnterior => !estadoAnterior);
+  }
+
+  const { logInWithEmailPassword, result } = useAuth();
 
   function logar() {
     try {
-      logInWithAnonymous();
+      logInWithEmailPassword({email: usuario, password: senha})
     }
     catch (error) {
       console.log("Login Error", error);
@@ -152,14 +161,24 @@ const LoginComponent = () => {
   }
 
   return (
-    <View style={{ display: "flex", flex: 1 }}>
+    <View style={{ display: "flex", height: 400}}>
       <View style={{ flex: 2, justifyContent: "flex-end", alignItems: "center" }}>
         <Text style={{ fontSize: 20, fontSize: 48 }}>Login</Text>
       </View>
-      <TouchableOpacity onPress={() => logar()} style={{ flex: 2, backgroundColor: "blue", margin: 10, justifyContent: "center", alignItems: "center" }}>
-        <Text style={{color: "white", fontSize: 28, fontWeight: "bold"}}>Entrar como anônimo</Text>
+
+      <TextInput placeholder="Usuário" style={{ flex: 1, padding: 10, backgroundColor: "white", borderColor: "black", borderStyle: "solid", borderWidth: 1, borderRadius: 5, margin: 10 }}
+        value={usuario} onChangeText={setUsuario} />
+      <TextInput placeholder="Senha" secureTextEntry={ocultarSenha} style={{ flex: 1, padding: 10, backgroundColor: "white", borderColor: "black", borderStyle: "solid", borderWidth: 1, borderRadius: 5, margin: 10 }}
+        value={senha} onChangeText={setSenha} />
+      <View style={{ flex: 1, flexDirection: "row", alignItems: "center", marginLeft: 10 }}>
+        <Switch value={!ocultarSenha} onValueChange={alternarExibirSenha} />
+        <Text>Mostrar Senha</Text>
+      </View>
+
+      <TouchableOpacity onPress={() => logar()} style={{ flex: 2, backgroundColor: "blue", margin: 10, justifyContent: "center", alignItems: "center", borderRadius: 5 }}>
+        <Text style={{ color: "white", fontSize: 28, fontWeight: "bold" }}>Entrar</Text>
       </TouchableOpacity>
-      <View style={{flex: 4}}>{result.error && <Text>{result.error.message}</Text>}</View>
+     
     </View>
   );
 };
@@ -188,7 +207,7 @@ export default function App() {
 
 
   return (
-    <AppProvider id="">
+    <AppProvider id="devicesync-lkfhh">
       <UserProvider fallback={LoginComponent}>
         <RealmProvider
           schema={[FotoSchema, ProjetoSchema, SubProjetoSchema, TodoSchema]}
