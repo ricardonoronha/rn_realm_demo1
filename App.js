@@ -207,7 +207,7 @@ export default function App() {
 
 
   return (
-    <AppProvider id="devicesync-lkfhh">
+    <AppProvider id="">
       <UserProvider fallback={LoginComponent}>
         <RealmProvider
           schema={[FotoSchema, ProjetoSchema, SubProjetoSchema, TodoSchema]}
