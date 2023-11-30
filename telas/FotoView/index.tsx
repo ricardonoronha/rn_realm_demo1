@@ -11,13 +11,13 @@ import AWS from "aws-sdk";
 import { decode } from "base64-arraybuffer";
 import { getUniqueId } from 'react-native-device-info';
 import { useRealm } from '@realm/react';
-
+import AppSettings from "../../appsettings";
 
 
 
 AWS.config.update({
-    accessKeyId: "",
-    secretAccessKey: "",
+    accessKeyId: AppSettings.AwsAccessKey,
+    secretAccessKey: AppSettings.AwsSecretKey,
     region: "sa-east-1"
 });
 

@@ -21,6 +21,7 @@ import { FotoSchema } from './databases/schemas/FotoSchema';
 import { ProjetoSchema } from './databases/schemas/ProjetoSchema';
 import { SubProjetoSchema } from './databases/schemas/SubProjetoSchema';
 import { TodoSchema } from './databases/schemas/TodoSchema';
+import AppSettings from './appsettings';
 
 const Stack = createNativeStackNavigator();
 
@@ -232,7 +233,7 @@ export default function App() {
 
 
   return (
-    <AppProvider id="">
+    <AppProvider id={AppSettings.AppId}>
       <UserProvider fallback={LoginComponent}>
         <RealmProvider
           schema={[FotoSchema, ProjetoSchema, SubProjetoSchema, TodoSchema]}
