@@ -21,7 +21,7 @@ import { FotoSchema } from './databases/schemas/FotoSchema';
 import { ProjetoSchema } from './databases/schemas/ProjetoSchema';
 import { SubProjetoSchema } from './databases/schemas/SubProjetoSchema';
 import { TodoSchema } from './databases/schemas/TodoSchema';
-import AppSettings from './appsettings';
+import AppSettings from './AppSettings';
 
 const Stack = createNativeStackNavigator();
 
