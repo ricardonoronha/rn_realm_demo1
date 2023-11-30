@@ -22,11 +22,6 @@ import { ProjetoSchema } from './databases/schemas/ProjetoSchema';
 import { SubProjetoSchema } from './databases/schemas/SubProjetoSchema';
 import { TodoSchema } from './databases/schemas/TodoSchema';
 
-
-
-
-
-
 const Stack = createNativeStackNavigator();
 
 function HomeScreen({ navigation }) {
@@ -38,15 +33,38 @@ function HomeScreen({ navigation }) {
 
   const refreshData = useCallback(() => {
     try {
+
+      // realm.write(() => {
+      //   realm.deleteAll();
+      // })
+
       const tarefasCorrente = realm
         .objects("Todo")
         .toJSON();
+
+      const Fotos = realm
+        .objects("Foto")
+        .toJSON();
+
+      console.log("fotos", Fotos);
+
+
 
       setTarefas(tarefasCorrente);
     }
     catch (error) {
       console.log("Error Realm", error);
     }
+  }, [realm]);
+
+  const removerTodo = useCallback((itemId) => {
+    realm.write(() => {
+      var items = realm.objects("Todo").filtered(`_id = '${itemId}'`);
+      realm.delete(items);
+    });
+
+    refreshData();
+
   }, [realm]);
 
   useEffect(() => {
@@ -62,13 +80,13 @@ function HomeScreen({ navigation }) {
         <Text style={{ flex: 1, lineHeight: 25, color: "black" }}>{item.titulo}</Text>
         <Text style={{ flex: 1, lineHeight: 25, color: "black", }}>{item.descricao}</Text>
       </View>
-      <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "red", flex: 1, alignItems: "center" }} onPress={() => removerTodo(item)} >
+      <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "red", flex: 1, alignItems: "center" }} onPress={() => removerTodo(item._id)} >
         <Text style={{ lineHeight: 20, textAlign: "center", marginTop: 10 }}>Remover</Text>
       </TouchableOpacity>
       <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "lightblue", flex: 1, alignItems: "center", marginLeft: 10 }} onPress={() => navigation.navigate("Foto", { task: item })} >
         <Text style={{ lineHeight: 20, textAlign: "center", marginTop: 10 }}>Foto</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "lightyellow", flex: 1, alignItems: "center", marginLeft: 10 }} onPress={() => enviarS3(item)} >
+      <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "lightyellow", flex: 1, alignItems: "center", marginLeft: 10 }} onPress={() => navigation.navigate("FotoView", { item })} >
         <Text style={{ lineHeight: 20, textAlign: "center", marginTop: 10 }}>S3</Text>
       </TouchableOpacity>
     </View>
@@ -111,7 +129,14 @@ function AddTarefa({ navigation }) {
 
   const createTodo = useCallback(() => {
     realm.write(() => {
-      realm.create("Todo", { _id: uuid.v4(), titulo, descricao, projeto: "novooriente.ce", "subprojeto_id": "quadra0", responsavel: "" });
+      realm.create("Todo", {
+        _id: uuid.v4(), 
+        titulo, 
+        descricao,
+        projeto: "novooriente.ce", 
+        subprojeto_id: "quadra0", 
+        responsavel: ""
+      });
     });
   }, [realm, titulo, descricao]);
 
@@ -153,7 +178,7 @@ const LoginComponent = () => {
 
   function logar() {
     try {
-      logInWithEmailPassword({email: usuario, password: senha})
+      logInWithEmailPassword({ email: usuario, password: senha })
     }
     catch (error) {
       console.log("Login Error", error);
@@ -161,7 +186,7 @@ const LoginComponent = () => {
   }
 
   return (
-    <View style={{ display: "flex", height: 400}}>
+    <View style={{ display: "flex", height: 400 }}>
       <View style={{ flex: 2, justifyContent: "flex-end", alignItems: "center" }}>
         <Text style={{ fontSize: 20, fontSize: 48 }}>Login</Text>
       </View>
@@ -178,7 +203,7 @@ const LoginComponent = () => {
       <TouchableOpacity onPress={() => logar()} style={{ flex: 2, backgroundColor: "blue", margin: 10, justifyContent: "center", alignItems: "center", borderRadius: 5 }}>
         <Text style={{ color: "white", fontSize: 28, fontWeight: "bold" }}>Entrar</Text>
       </TouchableOpacity>
-     
+
     </View>
   );
 };
@@ -211,13 +236,15 @@ export default function App() {
       <UserProvider fallback={LoginComponent}>
         <RealmProvider
           schema={[FotoSchema, ProjetoSchema, SubProjetoSchema, TodoSchema]}
+          
           sync={{
             flexible: true,
             initialSubscriptions: {
               update: (subs, realm) => {
-                subs.add(
-                  realm.objects("Todo").filtered("projeto = 'novooriente.ce'")
-                );
+                subs.add(realm.objects("Foto"));
+                subs.add(realm.objects("Todo"));
+                subs.add(realm.objects("Projeto"));
+                subs.add(realm.objects("SubProjeto"));
               }
             },
           }}

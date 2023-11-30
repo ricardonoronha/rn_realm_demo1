@@ -1,4 +1,5 @@
 import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Image, StatusBar, Alert } from 'react-native';
+import { useCallback } from "react";
 import { Camera, CameraType, CameraCapturedPicture } from "expo-camera"
 import * as MediaLibrary from "expo-media-library"
 import { useEffect, useRef, useState } from 'react';
@@ -8,6 +9,7 @@ import { useIsFocused } from '@react-navigation/native';
 import uuid from "react-native-uuid";
 import { getRealm } from '../../databases/realm';
 import { getUniqueId } from 'react-native-device-info';
+import { useRealm } from '@realm/react';
 
 
 export default function CameraView({ navigation, route }) {
@@ -30,13 +32,10 @@ export default function CameraView({ navigation, route }) {
     const [foto, setFoto] = useState<CameraCapturedPicture | null>(null)
     const cameraRef = useRef<Camera>(null);
     const [arquivos, setArquivos] = useState<string[]>([]);
-
-
-
+    
+    const realm = useRealm();
 
     useEffect(() => {
-
-
 
         (async () => {
             const { status } = await Camera.requestCameraPermissionsAsync();
@@ -56,42 +55,44 @@ export default function CameraView({ navigation, route }) {
                     console.log("error ao criar diretório", error);
                 }
             }
-            else {
-                // const arquivosSearch = await ExpoFs.readDirectoryAsync(dirTrimap);
+        })();
+    }, [temPermissaoPasta]);
 
-                // const maiorId: Number = arquivosSearch
-                //     .map(arq => {
-                //         const fileName = arq.split("/").pop();
-                //         console.log(fileName);
-                //         return fileName;
-                //     })
-                //     .map(fileName => {
-                //         console.log(fileName);
-                //         return 0;
-                //         // return new Number(fileName?.substring(0, 4));
-                //     })
-                //     .reduce(function (a, b) {
-                //         return Math.max(a, b);
-                //     }, 1);
+    const salvarFoto = useCallback(async () => {
+        if (foto) {
 
-                // setFotoCorrente(maiorId);
+            const novoFotoId = uuid.v4();
+
+            const fotoUriStr = foto?.uri.toString()
+            console.log("fotoUriStr", fotoUriStr);
+            const extensaoImg = fotoUriStr?.split(".").pop();
+            console.log("extensão foto", extensaoImg);
+
+            const uriNovoArquivo = `${dirTrimap}/${novoFotoId}.${extensaoImg}`;
+
+            await ExpoFs.copyAsync({ from: foto.uri, to: uriNovoArquivo });
+
+            const deviceId = await getUniqueId();
+
+            try {
+                realm.write(() => {
+                    realm.create("Foto", {
+                        _id: novoFotoId,
+                        task_id: task._id,
+                        extensao: extensaoImg,
+                        uri: uriNovoArquivo,
+                        deviceId: deviceId,
+                        projeto: "novooriente.ce"
+                    });
+                })
+
+
             }
-
-
-
-
-
-        })();
-    }, [temPermissaoPasta])
-
-    useEffect(() => {
-
-        (async () => {
-            const realm = await getRealm();
-            console.log(realm.objects("Foto").toJSON());
-        })();
-
-    }, [isFocused]);
+            catch (error) {
+                console.log("Erro ao salvar foto", error);
+            }
+        }
+    }, [realm, foto]);
 
     if (temPermissao === null) {
         return <View style={estilos.container}>
@@ -116,17 +117,6 @@ export default function CameraView({ navigation, route }) {
         }
     }
 
-    async function listarFotos() {
-        const infoDir = await ExpoFs.readDirectoryAsync(dirTrimap);
-        if (infoDir.length === 0) {
-            console.log("Diretório Trimap vazio");
-        }
-        else {
-            console.log("Listando arquivos diretorio Trimap...");
-            infoDir.forEach(x => console.log(x));
-        }
-
-    }
 
     async function base64Foto() {
 
@@ -156,67 +146,9 @@ export default function CameraView({ navigation, route }) {
 
     }
 
-    async function salvarFoto() {
-        if (foto) {
-
-            const novoFotoId = uuid.v4();
-
-            const fotoUriStr = foto?.uri.toString()
-            console.log("fotoUriStr", fotoUriStr);
-            const extensaoImg = fotoUriStr?.split(".").pop();
-            console.log("extensão foto", extensaoImg);
-
-            const uriNovoArquivo = `${dirTrimap}/${novoFotoId}.${extensaoImg}`;
-
-            await ExpoFs.copyAsync({ from: foto.uri, to: uriNovoArquivo });
-
-            const deviceId = await getUniqueId();
-
-            const realm = await getRealm();
-
-            try {
-                realm.write(() => {
-                    realm.create("Foto", {
-                        _id: novoFotoId,
-                        task_id: task._id,
-                        extensao: extensaoImg,
-                        uri: uriNovoArquivo,
-                        deviceId: deviceId
-                    });
-                })
-
-
-            }
-            catch (error) {
-                console.log("Erro ao salvar foto", error);
-            }
-            finally {
-                realm.close();
-            }
 
 
 
-
-
-            await listarFotos();
-
-
-
-
-
-        }
-    }
-
-    async function listarArquivos() {
-        if (foto) {
-            console.log("foto disponivel", foto);
-            const permissao = await ExpoFs.StorageAccessFramework.requestDirectoryPermissionsAsync();
-            if (permissao.granted) {
-                const arquivos = await ExpoFs.StorageAccessFramework.readDirectoryAsync(permissao.directoryUri)
-                setArquivos(arquivos);
-            }
-        }
-    }
 
     async function voltar() {
         setFoto(null);
@@ -232,9 +164,6 @@ export default function CameraView({ navigation, route }) {
             </TouchableOpacity>
             <TouchableOpacity onPress={salvarFoto} style={estilos.voltar}>
                 <Text style={{ color: "white", padding: 10, textAlign: "center", fontSize: 19 }}>Salvar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={listarFotos} style={estilos.voltar}>
-                <Text style={{ color: "white", padding: 10, textAlign: "center", fontSize: 19 }}>Listar</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={base64Foto} style={estilos.voltar}>
                 <Text style={{ color: "white", padding: 10, textAlign: "center", fontSize: 19 }}>base64</Text>

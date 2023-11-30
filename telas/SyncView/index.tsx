@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Image, StatusBar, Alert, FlatList } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import uuid from "react-native-uuid";
@@ -7,6 +7,7 @@ import { getUniqueId } from 'react-native-device-info';
 import AWS from "aws-sdk"
 import { decode } from "base64-arraybuffer";
 import * as ExpoFs from "expo-file-system";
+import { useRealm } from '@realm/react';
 
 
 
@@ -39,19 +40,22 @@ export default function SyncView({ navigation }) {
     const [fotosAEnviar, setFotosAEnviar] = useState([]);
     const [qtdeFotosAEnviar, setQtdeFotosAEnviar] = useState(0);
 
-    useEffect(() => {
-        (async () => {
-            setCarregando("Carregando...");
-            const deviceId = await getUniqueId();
-            const realm = await getRealm();
-            console.log(realm);
-            const objFotosAEnviar = realm.objects("Foto").filtered(`deviceId = '${deviceId}' && dataUpload = nil `).toJSON();
-            console.log("fotos a enviar", objFotosAEnviar);
-            setFotosAEnviar(objFotosAEnviar);
-            setQtdeFotosAEnviar(objFotosAEnviar.length);
-            setCarregando("");
+    const realm = useRealm();
 
-        })();
+    const refreshData = useCallback(async () => {
+
+        setCarregando("Carregando...");
+        const deviceId = await getUniqueId();
+        const objFotosAEnviar = realm.objects("Foto").filtered(`deviceId = '${deviceId}' `).toJSON();
+        console.log("===> fotos a enviar", objFotosAEnviar);
+        setFotosAEnviar(objFotosAEnviar);
+        setQtdeFotosAEnviar(objFotosAEnviar.length);
+        setCarregando("");
+
+    }, [realm]);
+
+    useEffect(() => {
+        refreshData();
     }, []);
 
     async function enviarS3(foto) {
@@ -90,7 +94,7 @@ export default function SyncView({ navigation }) {
 
                 setQtdeFotosAEnviar(qtdeFotosAEnviar - 1);
             }
-            
+
             setCarregando("");
             setQtdeFotosAEnviar(0);
 
@@ -107,10 +111,6 @@ export default function SyncView({ navigation }) {
             <View>
                 <View style={{ backgroundColor: "white", margin: 10, borderRadius: 10, padding: 20, alignItems: "center" }}>
                     <Text style={{ fontSize: 20, fontWeight: "bold", padding: 5 }}>{carregando}</Text>
-                </View>
-                <View style={{ backgroundColor: "white", margin: 10, borderRadius: 10, padding: 20, alignItems: "center" }}>
-                    <Text style={{ fontSize: 20, fontWeight: "bold", padding: 5 }}>Imagens a Enviar</Text>
-                    <Text style={{ fontSize: 48, fontWeight: "bold", padding: 5 }}>{qtdeFotosAEnviar}</Text>
                 </View>
             </View>
         );

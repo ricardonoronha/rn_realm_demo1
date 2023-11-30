@@ -8,7 +8,8 @@ export const FotoSchema: ObjectSchema = {
         uri: "string",
         extensao: "string", 
         dataUpload: "date?",
-        deviceId: "string"
+        deviceId: "string",
+        projeto: "string"
     }, 
     primaryKey: "_id"
 }

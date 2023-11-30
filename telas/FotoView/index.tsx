@@ -1,7 +1,7 @@
 import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Image, StatusBar, Alert, Button, FlatList } from 'react-native';
 import { Camera, CameraType, CameraCapturedPicture } from "expo-camera"
 import * as MediaLibrary from "expo-media-library"
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Permissions from "expo-permissions"
 import * as ExpoFs from "expo-file-system";
 import { useIsFocused } from '@react-navigation/native';
@@ -10,6 +10,7 @@ import { getRealm } from '../../databases/realm';
 import AWS from "aws-sdk";
 import { decode } from "base64-arraybuffer";
 import { getUniqueId } from 'react-native-device-info';
+import { useRealm } from '@realm/react';
 
 
 
@@ -52,41 +53,46 @@ export default function FotoView({ navigation, route }) {
     const dirTrimap = ExpoFs.documentDirectory + "trimap_imagens/";
     const isFocused = useIsFocused();
 
+    const realm = useRealm();
+
+    const refreshData = useCallback(async () => {
+
+        const listaFotos = realm.objects("Foto").filtered(`task_id = '${task._id}'`).toJSON();
+        const listaFotosFinal = [];
+
+        for (let i = 0; i < listaFotos.length; i++) {
+
+            const fotoDb = listaFotos[i];
+
+            console.log("fotoDb", fotoDb);
+
+            try {
+                const fileInfo = await ExpoFs.getInfoAsync(fotoDb.uri);
+                console.log("fileInfo", fileInfo);
+
+                const file = await ExpoFs.readAsStringAsync(fileInfo.uri, { encoding: ExpoFs.EncodingType.Base64 });
+
+                listaFotosFinal.push({
+                    ...fotoDb,
+                    base64: file
+                });
+            }
+            catch (error) {
+                console.log("error abrir arquivo", error);
+            }
+        }
+
+
+        setFoto(listaFotosFinal)
+
+        setCarregando("");
+
+    }, [task, realm]);
+
     useEffect(() => {
 
-        (async () => {
+        refreshData();
 
-            const realm = await getRealm();
-            const listaFotos = realm.objects("Foto").filtered(`task_id = '${task._id}'`).toJSON();
-            const listaFotosFinal = [];
-
-            for (let i = 0; i < listaFotos.length; i++) {
-
-                const fotoDb = listaFotos[i];
-
-                console.log("fotoDb", fotoDb);
-
-                try {
-                    const fileInfo = await ExpoFs.getInfoAsync(fotoDb.uri);
-                    console.log("fileInfo", fileInfo);
-
-                    const file = await ExpoFs.readAsStringAsync(fileInfo.uri, { encoding: ExpoFs.EncodingType.Base64 });
-
-                    listaFotosFinal.push({
-                        ...fotoDb,
-                        base64: file
-                    });
-                }
-                catch (error) {
-                    console.log("error abrir arquivo", error);
-                }
-            }
-
-
-            setFoto(listaFotosFinal)
-
-            setCarregando("");
-        })();
     }, [isFocused, task._id])
 
     async function listarArquivos() {
