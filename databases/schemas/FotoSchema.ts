@@ -9,7 +9,18 @@ export const FotoSchema: ObjectSchema = {
         extensao: "string", 
         dataUpload: "date?",
         deviceId: "string",
-        projeto: "string"
+        projeto: "string",
+        tipoFoto: "string",
+        usoEspecifico: "string",
+        numero: "string",
+        complemento: "string",
+        fns: "string",
+        cagece: "string",
+        enel: "string",
+        qtdePavimentos: "int",
+        obs: "string",
+        revisar: "bool",
+
     }, 
     primaryKey: "_id"
 }

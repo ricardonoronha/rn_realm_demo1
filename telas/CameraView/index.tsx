@@ -11,6 +11,7 @@ import { getRealm } from '../../databases/realm';
 import { getUniqueId } from 'react-native-device-info';
 import { useRealm } from '@realm/react';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Picker } from "@react-native-picker/picker";
 
 
 
@@ -34,6 +35,20 @@ export default function CameraView({ navigation, route }) {
     const [foto, setFoto] = useState<CameraCapturedPicture | null>(null)
     const cameraRef = useRef<Camera>(null);
     const [arquivos, setArquivos] = useState<string[]>([]);
+
+
+    const [tipoFoto, setTipoFoto] = useState("FACHADA");
+    const [usoEspecifico, setUsoEspecifico] = useState("");
+    const [numero, setNumero] = useState("");
+    const [complemento, setComplemento] = useState("");
+    const [fns, setFns] = useState("");
+    const [cagece, setCagece] = useState("");
+    const [enel, setEnel] = useState("");
+    const [qtdePavimentos, setQtdePavimentos] = useState(1);
+    const [obs, setObs] = useState("");
+    const [revisar, setRevisar] = useState(true);
+
+
 
     const realm = useRealm();
 
@@ -165,14 +180,62 @@ export default function CameraView({ navigation, route }) {
                 <Image source={foto} style={{ flex: 1 }} />
                 <ScrollView style={{ flex: 1, marginTop: 10 }}>
                     <View style={{ flex: 1 }}>
-                        <Text style={{ marginLeft: 10 }}>N.º (Ex.: 10, 25A):</Text>
-                        <TextInput style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
-                        <Text style={{ marginLeft: 10 }}>FNS:</Text>
-                        <TextInput style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
-                        <Text style={{ marginLeft: 10 }}>CAGECE:</Text>
-                        <TextInput style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
-                        <Text style={{ marginLeft: 10 }}>ENEL:</Text>
-                        <TextInput style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
+                        <Text style={{ marginLeft: 10 }}>REVISAR:</Text>
+                        <Picker
+                            selectedValue={tipoFoto}
+                            style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }}
+                            onValueChange={(itemValue) =>
+                                setTipoFoto(itemValue)
+                            }>
+                            <Picker.Item label="SIM" value={true} />
+                            <Picker.Item label="NÃO" value={false} />
+                        </Picker>
+                        <Text style={{ marginLeft: 10 }}>TIPO DE FOTO:</Text>
+                        <Picker
+                            selectedValue={tipoFoto}
+                            style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }}
+                            onValueChange={(itemValue) =>
+                                setTipoFoto(itemValue)
+                            }>
+                            <Picker.Item label="LOTE" value="LOTE" />
+                            <Picker.Item label="NUMERO" value="NUMERO" />
+                            <Picker.Item label="UNIDADE" value="UNIDADE" />
+                            <Picker.Item label="CAGECE" value="CAGECE" />
+                            <Picker.Item label="ENEL" value="ENEL" />
+                        </Picker>
+                        <Text style={{ marginLeft: 10 }}>QTDE. PAVIMENTOS:</Text>
+                        <Picker
+                            selectedValue={qtdePavimentos}
+                            style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }}
+                            onValueChange={(itemValue) =>
+                                setQtdePavimentos(itemValue)
+                            }>
+                            <Picker.Item label="01" value={1} />
+                            <Picker.Item label="02" value={2} />
+                            <Picker.Item label="03" value={3} />
+                            <Picker.Item label="04" value={4} />
+                            <Picker.Item label="05" value={5} />
+                            <Picker.Item label="06" value={6} />
+                            <Picker.Item label="07" value={7} />
+                            <Picker.Item label="08" value={8} />
+                            <Picker.Item label="09" value={9} />
+                            <Picker.Item label="10" value={10} />
+
+                        </Picker>
+                        <Text style={{ marginLeft: 10, marginTop: 5 }}>USO ESPECIFICO:</Text>
+                        <TextInput value={usoEspecifico} onChangeText={(e) => setUsoEspecifico(e)} style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
+                        <Text style={{ marginLeft: 10, marginTop: 5 }}>N.º (Ex.: 10, 25A):</Text>
+                        <TextInput value={numero} onChangeText={(e) => setNumero(e)} style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
+                        <Text style={{ marginLeft: 10, marginTop: 5 }}>COMPLEMENTO:</Text>
+                        <TextInput value={complemento} onChangeText={(e) => setComplemento(e)} style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
+                        <Text style={{ marginLeft: 10, marginTop: 5 }}>FNS:</Text>
+                        <TextInput value={fns} onChangeText={(e) => setFns(e)} style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
+                        <Text style={{ marginLeft: 10, marginTop: 5 }}>CAGECE:</Text>
+                        <TextInput value={cagece} onChangeText={(e) => setCagece(e)} style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
+                        <Text style={{ marginLeft: 10, marginTop: 5 }}>ENEL:</Text>
+                        <TextInput value={enel} onChangeText={(e) => setEnel(e)} style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
+                        <Text style={{ marginLeft: 10, marginTop: 5 }}>OBSERVAÇÃO:</Text>
+                        <TextInput value={obs} onChangeText={(e) => setObs(e)} style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 90, padding: 5, marginVertical: 5 }} />
 
                     </View>
                 </ScrollView>
