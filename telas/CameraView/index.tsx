@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Image, StatusBar, Alert } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Image, StatusBar, Alert, TextInput, ScrollView } from 'react-native';
 import { useCallback } from "react";
 import { Camera, CameraType, CameraCapturedPicture } from "expo-camera"
 import * as MediaLibrary from "expo-media-library"
@@ -10,6 +10,8 @@ import uuid from "react-native-uuid";
 import { getRealm } from '../../databases/realm';
 import { getUniqueId } from 'react-native-device-info';
 import { useRealm } from '@realm/react';
+import Ionicons from '@expo/vector-icons/Ionicons';
+
 
 
 export default function CameraView({ navigation, route }) {
@@ -32,7 +34,7 @@ export default function CameraView({ navigation, route }) {
     const [foto, setFoto] = useState<CameraCapturedPicture | null>(null)
     const cameraRef = useRef<Camera>(null);
     const [arquivos, setArquivos] = useState<string[]>([]);
-    
+
     const realm = useRealm();
 
     useEffect(() => {
@@ -156,19 +158,39 @@ export default function CameraView({ navigation, route }) {
 
     if (foto) {
         console.log(foto);
-        return <View style={{ flex: 1, justifyContent: "center", alignContent: "center" }}>
-            <Text style={estilos.tituloFoto}>Foto</Text>
-            <Image source={foto} style={estilos.fotoPreview} />
-            <TouchableOpacity onPress={voltar} style={estilos.voltar}>
-                <Text style={{ color: "white", padding: 10, textAlign: "center", fontSize: 19 }}>Voltar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={salvarFoto} style={estilos.voltar}>
-                <Text style={{ color: "white", padding: 10, textAlign: "center", fontSize: 19 }}>Salvar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={base64Foto} style={estilos.voltar}>
-                <Text style={{ color: "white", padding: 10, textAlign: "center", fontSize: 19 }}>base64</Text>
-            </TouchableOpacity>
-        </View>
+        return <>
+
+
+            <View style={{ flex: 1, justifyContent: "center", alignContent: "center" }}>
+                <Image source={foto} style={{ flex: 1 }} />
+                <ScrollView style={{ flex: 1, marginTop: 10 }}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{ marginLeft: 10 }}>N.º (Ex.: 10, 25A):</Text>
+                        <TextInput style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
+                        <Text style={{ marginLeft: 10 }}>FNS:</Text>
+                        <TextInput style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
+                        <Text style={{ marginLeft: 10 }}>CAGECE:</Text>
+                        <TextInput style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
+                        <Text style={{ marginLeft: 10 }}>ENEL:</Text>
+                        <TextInput style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
+
+                    </View>
+                </ScrollView>
+
+                <View style={{ flexDirection: "row", margin: 10, height: 80 }}>
+                    <TouchableOpacity onPress={voltar} style={estilos.voltar}>
+                        <Ionicons name="arrow-back-circle" size={45} color="blue" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={salvarFoto} style={estilos.voltar}>
+                        <Ionicons name="save" size={45} color="blue" />
+                    </TouchableOpacity>
+                </View>
+
+
+            </View >
+        </>
+
+
     }
     else {
         if (isFocused) {
@@ -205,14 +227,17 @@ const estilos = StyleSheet.create({
         borderColor: "red"
     },
     voltar: {
-        backgroundColor: "blue",
+        flex: 1,
+        marginRight: 5,
+        width: 70,
+        height: 70,
+        alignItems: "center",
+        verticalAlign: "middle",
         padding: 5,
-        margin: 10,
-        borderRadius: 10,
+        borderRadius: 35,
         textAlign: "center",
         borderWidth: 5,
         borderColor: "blue",
-        flex: 1
     },
     foto: {
         flex: 1,
@@ -221,7 +246,7 @@ const estilos = StyleSheet.create({
     },
     fotoPreview: {
         margin: 10,
-        flex: 9,
+        flex: 1,
         width: null,
         height: null
     },

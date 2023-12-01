@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, Text, TextInput, View, Button, FlatList, TouchableOpacity, Switch } from 'react-native';
+import { StyleSheet, Text, TextInput, View, Button, FlatList, TouchableOpacity, Switch, KeyboardAvoidingView, Platform } from 'react-native';
 import uuid from 'react-native-uuid';
 import { NavigationContainer, useIsFocused } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -97,7 +97,7 @@ function HomeScreen({ navigation }) {
 
   function RenderListaHeader() {
     return <View style={styles.headerLista}>
-      <Text style={styles.headerListaText}>Lista de tarefas</Text>
+      <Text style={styles.headerListaText}>01.01.003</Text>
       <TouchableOpacity style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: "green" }} onPress={() => navigation.navigate("AddTarefa")} >
         <Text style={{ lineHeight: 40, width: 60, textAlign: "center", marginTop: 10, color: "white" }}>+</Text>
       </TouchableOpacity>
@@ -131,11 +131,11 @@ function AddTarefa({ navigation }) {
   const createTodo = useCallback(() => {
     realm.write(() => {
       realm.create("Todo", {
-        _id: uuid.v4(), 
-        titulo, 
+        _id: uuid.v4(),
+        titulo,
         descricao,
-        projeto: "novooriente.ce", 
-        subprojeto_id: "quadra0", 
+        projeto: "novooriente.ce",
+        subprojeto_id: "quadra0",
         responsavel: ""
       });
     });
@@ -213,17 +213,20 @@ const LoginComponent = () => {
 const AppComponent = () => {
   return (
     <>
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Página Inicial', headerShown: false }} />
-          <Stack.Screen name="AddTarefa" component={AddTarefa} options={{ title: 'Adicionar tarefa' }} />
-          <Stack.Screen name="Foto" component={CameraView} options={{ title: 'Foto' }} />
-          <Stack.Screen name="FotoView" component={FotoView} options={{ title: 'FotoView' }} />
-          <Stack.Screen name="ConfigView" component={ConfigView} options={{ title: 'Configurações' }} />
-          <Stack.Screen name="SyncView" component={SyncView} options={{ title: 'Sincronizar' }} />
-        </Stack.Navigator>
-      </NavigationContainer>
-      <StatusBar style="auto" backgroundColor='darkgray' /></>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Página Inicial', headerShown: false }} />
+            <Stack.Screen name="AddTarefa" component={AddTarefa} options={{ title: 'Adicionar tarefa' }} />
+            <Stack.Screen name="Foto" component={CameraView} options={{ title: 'Foto' }} />
+            <Stack.Screen name="FotoView" component={FotoView} options={{ title: 'FotoView' }} />
+            <Stack.Screen name="ConfigView" component={ConfigView} options={{ title: 'Configurações' }} />
+            <Stack.Screen name="SyncView" component={SyncView} options={{ title: 'Sincronizar' }} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </KeyboardAvoidingView>
+      <StatusBar style="auto" backgroundColor='darkgray' />
+    </>
   );
 };
 
@@ -237,7 +240,7 @@ export default function App() {
       <UserProvider fallback={LoginComponent}>
         <RealmProvider
           schema={[FotoSchema, ProjetoSchema, SubProjetoSchema, TodoSchema]}
-          
+
           sync={{
             flexible: true,
             initialSubscriptions: {
