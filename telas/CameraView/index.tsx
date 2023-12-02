@@ -46,7 +46,7 @@ export default function CameraView({ navigation, route }) {
     const [enel, setEnel] = useState("");
     const [qtdePavimentos, setQtdePavimentos] = useState(1);
     const [obs, setObs] = useState("");
-    const [revisar, setRevisar] = useState(true);
+    const [revisar, setRevisar] = useState(false);
 
 
 
@@ -109,6 +109,10 @@ export default function CameraView({ navigation, route }) {
                 console.log("Erro ao salvar foto", error);
             }
         }
+    }, [realm, foto]);
+
+    const salvarETirarNova = useCallback(async () => {
+
     }, [realm, foto]);
 
     if (temPermissao === null) {
@@ -182,13 +186,13 @@ export default function CameraView({ navigation, route }) {
                     <View style={{ flex: 1 }}>
                         <Text style={{ marginLeft: 10 }}>REVISAR:</Text>
                         <Picker
-                            selectedValue={tipoFoto}
+                            selectedValue={revisar ? "S" : "N"}
                             style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }}
                             onValueChange={(itemValue) =>
-                                setTipoFoto(itemValue)
+                                setRevisar(itemValue === "S")
                             }>
-                            <Picker.Item label="SIM" value={true} />
-                            <Picker.Item label="NÃO" value={false} />
+                            <Picker.Item label="SIM" value="S" />
+                            <Picker.Item label="NÃO" value="N" />
                         </Picker>
                         <Text style={{ marginLeft: 10 }}>TIPO DE FOTO:</Text>
                         <Picker
@@ -242,10 +246,13 @@ export default function CameraView({ navigation, route }) {
 
                 <View style={{ flexDirection: "row", margin: 10, height: 80 }}>
                     <TouchableOpacity onPress={voltar} style={estilos.voltar}>
-                        <Ionicons name="arrow-back-circle" size={45} color="blue" />
+                        <Ionicons name="arrow-undo" size={45} color="blue" />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={salvarFoto} style={estilos.voltar}>
                         <Ionicons name="save" size={45} color="blue" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={salvarETirarNova} style={estilos.voltar}>
+                        <Ionicons name="repeat" size={45} color="blue" />
                     </TouchableOpacity>
                 </View>
 
@@ -322,3 +329,4 @@ const estilos = StyleSheet.create({
     }
 
 });
+
