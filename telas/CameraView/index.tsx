@@ -37,7 +37,7 @@ export default function CameraView({ navigation, route }) {
     const [arquivos, setArquivos] = useState<string[]>([]);
 
 
-    const [tipoFoto, setTipoFoto] = useState("FACHADA");
+    const [tipoFoto, setTipoFoto] = useState("LOTE");
     const [usoEspecifico, setUsoEspecifico] = useState("");
     const [numero, setNumero] = useState("");
     const [complemento, setComplemento] = useState("");
@@ -47,6 +47,7 @@ export default function CameraView({ navigation, route }) {
     const [qtdePavimentos, setQtdePavimentos] = useState(1);
     const [obs, setObs] = useState("");
     const [revisar, setRevisar] = useState(false);
+    const [tamanhoImgFoto, setTamanhoImgFoto] = useState({});
 
 
 
@@ -96,10 +97,23 @@ export default function CameraView({ navigation, route }) {
                     realm.create("Foto", {
                         _id: novoFotoId,
                         task_id: task._id,
-                        extensao: extensaoImg,
                         uri: uriNovoArquivo,
+                        extensao: extensaoImg,
                         deviceId: deviceId,
-                        projeto: "novooriente.ce"
+                        projeto: "novooriente.ce",
+                        tipoFoto,
+                        usoEspecifico,
+                        numero,
+                        complemento,
+                        fns,
+                        cagece,
+                        enel,
+                        qtdePavimentos,
+                        obs,
+                        revisar,
+                        latitude: 0,
+                        longitude: 0,
+                        precisao: 0
                     });
                 })
 
@@ -109,7 +123,15 @@ export default function CameraView({ navigation, route }) {
                 console.log("Erro ao salvar foto", error);
             }
         }
-    }, [realm, foto]);
+    }, [realm, foto, tipoFoto, usoEspecifico, numero, complemento, fns, cagece, enel, qtdePavimentos, obs, revisar, tamanhoImgFoto]);
+
+    const onViewImgLeaiute = (event) => {
+
+        let { width, height } = event.nativeEvent.layout
+        console.log("=======width", width, "=======height", height);
+        setTamanhoImgFoto({ width, height });
+    };
+
 
     const salvarETirarNova = useCallback(async () => {
 
@@ -176,14 +198,33 @@ export default function CameraView({ navigation, route }) {
     }
 
     if (foto) {
-        console.log(foto);
+        let largura = 0;
+        let altura = 0;
+
+        if (tamanhoImgFoto.width && tamanhoImgFoto.height) {
+
+            const ladoView = Math.min(tamanhoImgFoto.width, tamanhoImgFoto.height) - 20;
+            const ladoFoto = Math.max(foto.width, foto.height);
+            const fator = ladoView / ladoFoto;
+            largura = fator * foto.width;
+            altura = fator * foto.height;
+
+        }
+
+
+
+
         return <>
 
 
             <View style={{ flex: 1, justifyContent: "center", alignContent: "center" }}>
-                <Image source={foto} style={{ flex: 1 }} />
-                <ScrollView style={{ flex: 1, marginTop: 10 }}>
-                    <View style={{ flex: 1 }}>
+                <ScrollView style={{ flex: 1, flexGrow: 1, marginTop: 5 }}>
+
+                    <View style={{ alignItems: "center", padding: 10, backgroundColor: "black", height: 250 }} onLayout={onViewImgLeaiute}>
+                        <Image source={foto} style={{ width: largura, height: altura }} />
+                    </View>
+
+                    <View style={{ marginTop: 5 }}>
                         <Text style={{ marginLeft: 10 }}>REVISAR:</Text>
                         <Picker
                             selectedValue={revisar ? "S" : "N"}
@@ -239,25 +280,27 @@ export default function CameraView({ navigation, route }) {
                         <Text style={{ marginLeft: 10, marginTop: 5 }}>ENEL:</Text>
                         <TextInput value={enel} onChangeText={(e) => setEnel(e)} style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
                         <Text style={{ marginLeft: 10, marginTop: 5 }}>OBSERVAÇÃO:</Text>
-                        <TextInput value={obs} onChangeText={(e) => setObs(e)} style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 90, padding: 5, marginVertical: 5 }} />
+                        <TextInput textAlignVertical="top" multiline={true} value={obs} onChangeText={(e) => setObs(e)} style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 160, padding: 5, marginVertical: 5 }} />
+
 
                     </View>
+
+                   
+
+
                 </ScrollView>
-
-                <View style={{ flexDirection: "row", margin: 10, height: 80 }}>
-                    <TouchableOpacity onPress={voltar} style={estilos.voltar}>
-                        <Ionicons name="arrow-undo" size={45} color="blue" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={salvarFoto} style={estilos.voltar}>
-                        <Ionicons name="save" size={45} color="blue" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={salvarETirarNova} style={estilos.voltar}>
-                        <Ionicons name="repeat" size={45} color="blue" />
-                    </TouchableOpacity>
-                </View>
-
-
-            </View >
+                <View style={{ flexDirection: "row", margin: 15, padding: 5, height: 80 }}>
+                        <TouchableOpacity onPress={voltar} style={estilos.voltar}>
+                            <Ionicons name="arrow-undo" size={45} color="blue" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={salvarFoto} style={estilos.voltar}>
+                            <Ionicons name="save" size={45} color="blue" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={salvarETirarNova} style={estilos.voltar}>
+                            <Ionicons name="repeat" size={45} color="blue" />
+                        </TouchableOpacity>
+                    </View>
+            </View>
         </>
 
 

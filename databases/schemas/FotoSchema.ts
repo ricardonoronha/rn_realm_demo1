@@ -20,7 +20,9 @@ export const FotoSchema: ObjectSchema = {
         qtdePavimentos: "int",
         obs: "string",
         revisar: "bool",
-
+        latitude: "float",
+        longitude: "float",
+        precisao: "float",
     }, 
     primaryKey: "_id"
 }
