@@ -13,6 +13,7 @@ export const FotoSchema: ObjectSchema = {
         tipoFoto: "string",
         usoEspecifico: "string",
         numero: "string",
+        origemNumero: "int",
         complemento: "string",
         fns: "string",
         cagece: "string",

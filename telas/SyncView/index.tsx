@@ -14,7 +14,7 @@ import { useRealm } from '@realm/react';
 AWS.config.update({
     accessKeyId: "",
     secretAccessKey: "",
-    region: "sa-east-1"
+    region: ""
 });
 
 const awsS3 = new AWS.S3();
@@ -41,18 +41,19 @@ export default function SyncView({ navigation }) {
     const [qtdeFotosAEnviar, setQtdeFotosAEnviar] = useState(0);
 
     const realm = useRealm();
+    const isFocused = useIsFocused();
 
     const refreshData = useCallback(async () => {
 
         setCarregando("Carregando...");
         const deviceId = await getUniqueId();
-        const objFotosAEnviar = realm.objects("Foto").filtered(`deviceId = '${deviceId}' `).toJSON();
+        const objFotosAEnviar = realm.objects("Foto").filtered(`deviceId = '${deviceId}' and dataUpload = nil `).toJSON();
         console.log("===> fotos a enviar", objFotosAEnviar);
         setFotosAEnviar(objFotosAEnviar);
         setQtdeFotosAEnviar(objFotosAEnviar.length);
         setCarregando("");
 
-    }, [realm]);
+    }, [realm, isFocused]);
 
     useEffect(() => {
         refreshData();
@@ -73,10 +74,10 @@ export default function SyncView({ navigation }) {
     }
 
 
-    async function sincronizar() {
+    const sincronizar = useCallback(async () => {
         try {
             setCarregando("Sincronizando...");
-            const realm = await getRealm();
+
             const dataCorrente = new Date();
 
 
@@ -102,9 +103,8 @@ export default function SyncView({ navigation }) {
         catch (error) {
             console.log(error);
         }
+    }, [realm, isFocused, fotosAEnviar]);
 
-
-    }
 
     if (carregando !== "") {
         return (
@@ -112,16 +112,13 @@ export default function SyncView({ navigation }) {
                 <View style={{ backgroundColor: "white", margin: 10, borderRadius: 10, padding: 20, alignItems: "center" }}>
                     <Text style={{ fontSize: 20, fontWeight: "bold", padding: 5 }}>{carregando}</Text>
                 </View>
+                
             </View>
         );
 
     }
 
     return (<View>
-        <View style={{ backgroundColor: "white", margin: 10, borderRadius: 10, padding: 20, alignItems: "center" }}>
-            <Text style={{ fontSize: 20, fontWeight: "bold", padding: 5 }}>Data Último Sync de Dados</Text>
-            <Text style={{ fontSize: 18, fontWeight: "bold", padding: 5 }}>{dataUltimoSync}</Text>
-        </View>
         <View style={{ backgroundColor: "white", margin: 10, borderRadius: 10, padding: 20, alignItems: "center" }}>
             <Text style={{ fontSize: 20, fontWeight: "bold", padding: 5 }}>Imagens a Enviar</Text>
             <Text style={{ fontSize: 48, fontWeight: "bold", padding: 5 }}>{qtdeFotosAEnviar}</Text>

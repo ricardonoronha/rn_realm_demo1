@@ -40,6 +40,7 @@ export default function CameraView({ navigation, route }) {
     const [tipoFoto, setTipoFoto] = useState("LOTE");
     const [usoEspecifico, setUsoEspecifico] = useState("");
     const [numero, setNumero] = useState("");
+    const [origemNumero, setOrigemNumero] = useState(0);
     const [complemento, setComplemento] = useState("");
     const [fns, setFns] = useState("");
     const [cagece, setCagece] = useState("");
@@ -48,6 +49,7 @@ export default function CameraView({ navigation, route }) {
     const [obs, setObs] = useState("");
     const [revisar, setRevisar] = useState(false);
     const [tamanhoImgFoto, setTamanhoImgFoto] = useState({});
+
 
 
 
@@ -104,6 +106,7 @@ export default function CameraView({ navigation, route }) {
                         tipoFoto,
                         usoEspecifico,
                         numero,
+                        origemNumero,
                         complemento,
                         fns,
                         cagece,
@@ -123,7 +126,7 @@ export default function CameraView({ navigation, route }) {
                 console.log("Erro ao salvar foto", error);
             }
         }
-    }, [realm, foto, tipoFoto, usoEspecifico, numero, complemento, fns, cagece, enel, qtdePavimentos, obs, revisar, tamanhoImgFoto]);
+    }, [realm, foto, tipoFoto, usoEspecifico, numero, origemNumero, complemento, fns, cagece, enel, qtdePavimentos, obs, revisar, tamanhoImgFoto]);
 
     const onViewImgLeaiute = (event) => {
 
@@ -271,6 +274,16 @@ export default function CameraView({ navigation, route }) {
                         <TextInput value={usoEspecifico} onChangeText={(e) => setUsoEspecifico(e)} style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
                         <Text style={{ marginLeft: 10, marginTop: 5 }}>N.º (Ex.: 10, 25A):</Text>
                         <TextInput value={numero} onChangeText={(e) => setNumero(e)} style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
+                        <Picker
+                            selectedValue={origemNumero}
+                            style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }}
+                            onValueChange={(itemValue) => setOrigemNumero(itemValue)}>
+                            <Picker.Item label="SEM ORIGEM" value={0} />
+                            <Picker.Item label="PAREDE" value={1} />
+                            <Picker.Item label="CONTA AGUA" value={2} />
+                            <Picker.Item label="CONTA ENERGIA" value={3} />
+                            <Picker.Item label="MORADOR" value={4} />
+                        </Picker>
                         <Text style={{ marginLeft: 10, marginTop: 5 }}>COMPLEMENTO:</Text>
                         <TextInput value={complemento} onChangeText={(e) => setComplemento(e)} style={{ marginHorizontal: 10, backgroundColor: "white", borderRadius: 5, height: 40, padding: 5, marginVertical: 5 }} />
                         <Text style={{ marginLeft: 10, marginTop: 5 }}>FNS:</Text>
@@ -285,21 +298,21 @@ export default function CameraView({ navigation, route }) {
 
                     </View>
 
-                   
+
 
 
                 </ScrollView>
                 <View style={{ flexDirection: "row", margin: 15, padding: 5, height: 80 }}>
-                        <TouchableOpacity onPress={voltar} style={estilos.voltar}>
-                            <Ionicons name="arrow-undo" size={45} color="blue" />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={salvarFoto} style={estilos.voltar}>
-                            <Ionicons name="save" size={45} color="blue" />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={salvarETirarNova} style={estilos.voltar}>
-                            <Ionicons name="repeat" size={45} color="blue" />
-                        </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity onPress={voltar} style={estilos.voltar}>
+                        <Ionicons name="arrow-undo" size={45} color="blue" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={salvarFoto} style={estilos.voltar}>
+                        <Ionicons name="save" size={45} color="blue" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={salvarETirarNova} style={estilos.voltar}>
+                        <Ionicons name="repeat" size={45} color="blue" />
+                    </TouchableOpacity>
+                </View>
             </View>
         </>
 
